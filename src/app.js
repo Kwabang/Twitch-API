@@ -2,6 +2,7 @@ const fetch = require('node-fetch')
 const express = require('express')
 
 const app = express()
+app.disable('etag')
 
 app.use((request, response, next) => {
 	console.log(`IP : ${request.ip} | Method : ${request.method} | Url : ${request.originalUrl}`)
