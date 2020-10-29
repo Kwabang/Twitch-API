@@ -31,7 +31,7 @@ ex) [0] = 1080p60, [1] = 720p60 ....
 | 500 | 트위치 API와 통신 오류 |
 
 ### 문의
-[이메일](mailto:kwabang2827@gmail.com) 또는 [디스코드](https://kwabang.codes/join)로 문의를 넣을 수 있습니다.
+[이메일](mailto:kwabang2827@gmail.com) 또는 [디스코드](https://kwabang.net/join)로 문의를 넣을 수 있습니다.
 
 ### 책임
 프로그램을 이용하여 생기는 문제의 책임은 **사용자**에게 있습니다.
