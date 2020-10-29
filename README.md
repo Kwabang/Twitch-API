@@ -1,7 +1,7 @@
 # Twitch-API <img src="https://img.shields.io/static/v1?label=code&message=Node.js&color=green" alt="">
 
 ## 기능
-- [m3u8](#hls)
+- [HLS](#hls)
 
 ### HLS
 ### Requests
