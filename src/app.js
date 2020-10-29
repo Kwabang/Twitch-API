@@ -10,13 +10,13 @@ app.use((request, response, next) => {
 })
 
 app.get('/', (request, response) => {
-	response.json({
+	response.status(200).json({
 		'message': "Welcome to Twitch API"
 	})
 })
 
 app.get('/hls', (request, response) => {
-	response.json({
+	response.status(404).json({
 		'message': 'unknown channel name'
 	})
 })
@@ -42,21 +42,21 @@ app.get('/hls/:id', async (request, response) => {
 					case 200: //m3u8 data exist
 						hls = await hls.text()
 						hls = hls.replace(/.*#.*\n?/gm, '')
-						response.json(hls.split('\n'))
+						response.status(200).json(hls.split('\n'))
 						return
 					default: //m3u8 data doesn't exsit
-						response.json({
+						response.status(404).json({
 							'message': 'm3u8 data not found'
 						})
 						return
 				}
 			case 404: //Channel not founded
-				response.json({
+				response.status(404).json({
 					'message':'Channel not found'
 				})
 				return
 			default: //Error with connect with Twitch API
-				response.json({
+				response.status(500).json({
 					'message':'Error with Twitch API'
 				})
 				return
