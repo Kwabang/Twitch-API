@@ -1,11 +1,11 @@
 const fetch = require('node-fetch')
 const express = require('express')
-
+const { response, request } = require('express')
 const app = express()
 app.disable('etag')
 
 app.use((request, response, next) => {
-	console.log(`IP : ${request.ip} | Method : ${request.method} | Url : ${request.originalUrl}`)
+	console.log(`IP : ${request.headers['x-forwarded-for']} | Method : ${request.method} | Url : ${request.originalUrl}`)
 	next()
 })
 
