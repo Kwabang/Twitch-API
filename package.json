@@ -1,0 +1,24 @@
+{
+  "name": "twitch-api",
+  "version": "1.0.0",
+  "description": "Twitch-API",
+  "main": "src/app.js",
+  "dependencies": {
+    "express": "^4.17.1",
+    "node-fetch": "^2.6.1"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "test": "node src/app.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/Kwabang/Twitch-API.git"
+  },
+  "author": "Kwabang",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/Kwabang/Twitch-API/issues"
+  },
+  "homepage": "https://github.com/Kwabang/Twitch-API#readme"
+}
