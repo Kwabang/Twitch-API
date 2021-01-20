@@ -2,14 +2,14 @@
   "name": "twitch-api",
   "version": "1.0.0",
   "description": "Twitch-API",
-  "main": "src/app.js",
+  "main": "index.js",
   "dependencies": {
     "express": "^4.17.1",
     "node-fetch": "^2.6.1"
   },
   "devDependencies": {},
   "scripts": {
-    "test": "node src/app.js"
+    "test": "node index.js"
   },
   "repository": {
     "type": "git",
