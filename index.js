@@ -31,7 +31,9 @@ app.get('/hls/:id', async (request, response) => {
 		"headers": {
 			'Client-ID': 'kimne78kx3ncx6brgo4mv6wki5h1ko',
 			'Content-Type': 'application/json',
-			'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36'
+			'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36',
+			'X-Device-Id': 'twitch-web-wall-mason',
+			'Device-ID': 'twitch-web-wall-mason'
 		},
 		"body": JSON.stringify({
 			"operationName": "PlaybackAccessToken",
@@ -66,7 +68,11 @@ app.get('/hls/:id', async (request, response) => {
 			} else {
 				let url = `http://usher.twitch.tv/api/channel/hls/${id}.m3u8?player=twitchweb&&token=${raw.data.streamPlaybackAccessToken.value}&sig=${raw.data.streamPlaybackAccessToken.signature}&allow_audio_only=true&allow_source=true&type=any&p=${parseInt(Math.random() * 999999)}`
 				let hls = await fetch(url, {
-					method: 'GET'
+					method: 'GET',
+					headers: {
+						'X-Device-Id': 'twitch-web-wall-mason',
+						'Device-ID': 'twitch-web-wall-mason'
+					}
 				})
 				switch (await hls.status) {
 					default: //m3u8 data doesn't exsit
