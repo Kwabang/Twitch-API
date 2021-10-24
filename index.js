@@ -1,6 +1,5 @@
 const fetch = require('node-fetch')
 const express = require('express')
-const { response, request } = require('express')
 
 const app = express()
 
@@ -60,7 +59,6 @@ app.get('/hls/:id', async (request, response) => {
 			break
 		case 200: //Channel founded
 			raw = await token.json()
-			// console.log(raw)
 			if (raw.data.streamPlaybackAccessToken === null) { //Channel not found
 				reject({
 					'code': 404
