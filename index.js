@@ -1,10 +1,8 @@
 const fetch = require('node-fetch')
 const express = require('express')
-const {
-	response,
-	request
-} = require('express')
+
 const app = express()
+
 app.disable('etag')
 
 app.use((request, response, next) => {
@@ -31,7 +29,9 @@ app.get('/hls/:id', async (request, response) => {
 		"headers": {
 			'Client-ID': 'kimne78kx3ncx6brgo4mv6wki5h1ko',
 			'Content-Type': 'application/json',
-			'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36'
+			'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36',
+			'X-Device-Id': 'twitch-web-wall-mason',
+			'Device-ID': 'twitch-web-wall-mason'
 		},
 		"body": JSON.stringify({
 			"operationName": "PlaybackAccessToken",
@@ -64,9 +64,25 @@ app.get('/hls/:id', async (request, response) => {
 					'code': 404
 				})
 			} else {
+				function cleanupAllAdStuff(data) {
+					return data
+					  .replace(/X-TV-TWITCH-AD-URL="[^"]+"/g, 'X-TV-TWITCH-AD-URL="javascript:alert(\'pogo\')"')
+					  .replace(
+						/X-TV-TWITCH-AD-CLICK-TRACKING-URL="[^"]+"/g,
+						'X-TV-TWITCH-AD-CLICK-TRACKING-URL="javascript:alert(\'pogo\')"'
+					  )
+					  .replace(/X-TV-TWITCH-AD-ADVERIFICATIONS="[^"]+"/g, `X-TV-TWITCH-AD-ADVERIFICATIONS="${btoa('{}')}"`)
+					  .replace(/#EXT-X-DATERANGE.+CLASS=".*ad.*".+\n/g, '')
+					  .replace(/\n#EXTINF.+(?<!live)\nhttps:.+/g, '');
+				}
+				
 				let url = `http://usher.twitch.tv/api/channel/hls/${id}.m3u8?player=twitchweb&&token=${raw.data.streamPlaybackAccessToken.value}&sig=${raw.data.streamPlaybackAccessToken.signature}&allow_audio_only=true&allow_source=true&type=any&p=${parseInt(Math.random() * 999999)}`
 				let hls = await fetch(url, {
-					method: 'GET'
+					method: 'GET',
+					headers: {
+						'X-Device-Id': 'twitch-web-wall-mason',
+						'Device-ID': 'twitch-web-wall-mason'
+					}
 				})
 				switch (await hls.status) {
 					default: //m3u8 data doesn't exsit
@@ -75,7 +91,8 @@ app.get('/hls/:id', async (request, response) => {
 						})
 						break
 					case 200: //m3u8 data exist
-						hls = await hls.text()
+						_hls = await hls.text()
+						hls = cleanupAllAdStuff(_hls)
 						hls = hls.replace(/.*#.*\n?/gm, '')
 						response.status(200).json(hls.split('\n'))
 						break
