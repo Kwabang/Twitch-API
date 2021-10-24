@@ -60,9 +60,9 @@ app.get('/hls/:id', async (request, response) => {
 		case 200: //Channel founded
 			raw = await token.json()
 			if (raw.data.streamPlaybackAccessToken === null) { //Channel not found
-				reject({
-					'code': 404
-				})
+        response.status(404).json({
+          'message': 'Channel not found'
+        })
 			} else {
 				function cleanupAllAdStuff(data) {
 					return data

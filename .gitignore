@@ -90,3 +90,5 @@ typings/
 # Vercel deploy
 .vercel/
 vercel.json
+
+yarn.lock
