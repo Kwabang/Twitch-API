@@ -64,6 +64,9 @@ app.get('/hls/:id', async (request, response) => {
           'message': 'Channel not found'
         })
 			} else {
+				function base64Encode(data) {
+					return Buffer.from(data).toString('base64')
+				}
 				function cleanupAllAdStuff(data) {
 					return data
 					  .replace(/X-TV-TWITCH-AD-URL="[^"]+"/g, 'X-TV-TWITCH-AD-URL="javascript:alert(\'pogo\')"')
@@ -71,7 +74,7 @@ app.get('/hls/:id', async (request, response) => {
 						/X-TV-TWITCH-AD-CLICK-TRACKING-URL="[^"]+"/g,
 						'X-TV-TWITCH-AD-CLICK-TRACKING-URL="javascript:alert(\'pogo\')"'
 					  )
-					  .replace(/X-TV-TWITCH-AD-ADVERIFICATIONS="[^"]+"/g, `X-TV-TWITCH-AD-ADVERIFICATIONS="${btoa('{}')}"`)
+					  .replace(/X-TV-TWITCH-AD-ADVERIFICATIONS="[^"]+"/g, `X-TV-TWITCH-AD-ADVERIFICATIONS="${base64Encode('{}')}"`)
 					  .replace(/#EXT-X-DATERANGE.+CLASS=".*ad.*".+\n/g, '')
 					  .replace(/\n#EXTINF.+(?<!live)\nhttps:.+/g, '');
 				}
