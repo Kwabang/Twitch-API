@@ -107,6 +107,12 @@ app.get('/hls/:id', async (request, response) => {
 
 app.get('/hls-raw/:data', async (request, response) => {
   let data = request.params.data
+  if (Object.keys(request.query).length !== 0) {
+    data = data + '?'
+    for (let key of Object.keys(request.query)) {
+      data = data + encodeURIComponent(key) + '=' + encodeURIComponent(request.query[key]) + '&'
+    }
+  }
   let token = await fetch(`https://gql.twitch.tv/gql`, {
     "method": 'POST',
     "headers": {
