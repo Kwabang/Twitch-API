@@ -1,14 +1,9 @@
-const fetch = require('node-fetch')
+const got = require('got')
 const express = require('express')
 
 const app = express()
 
 app.disable('etag')
-
-app.use((request, response, next) => {
-  console.log(`IP : ${request.headers['x-forwarded-for']} | Method : ${request.method} | Url : ${request.originalUrl}`)
-  next()
-})
 
 app.get('/', (request, response) => {
   response.status(200).json({
@@ -24,16 +19,21 @@ app.get('/hls', (request, response) => {
 
 app.get('/hls/:id', async (request, response) => {
   let id = request.params.id
-  let token = await fetch(`https://gql.twitch.tv/gql`, {
-    "method": 'POST',
-    "headers": {
+  let token = await got(`https://gql.twitch.tv/gql`, {
+    method: 'POST',
+    responseType: 'json',
+    retry: {
+      limit: 4
+    },
+    throwHttpErrors: false,
+    headers: {
       'Client-ID': 'kimne78kx3ncx6brgo4mv6wki5h1ko',
       'Content-Type': 'application/json',
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36',
       'X-Device-Id': 'twitch-web-wall-mason',
       'Device-ID': 'twitch-web-wall-mason'
     },
-    "body": JSON.stringify({
+    body: JSON.stringify({
       "operationName": "PlaybackAccessToken",
       "extensions": {
         "persistedQuery": {
@@ -51,15 +51,14 @@ app.get('/hls/:id', async (request, response) => {
     })
   })
 
-  switch (await token.status) {
+  switch (token.statusCode) {
     default: //Error with connect with Twitch API
       response.status(500).json({
         'message': 'Error with Twitch API'
       })
       break
     case 200: //Channel founded
-      raw = await token.json()
-      if (raw.data.streamPlaybackAccessToken === null) { //Channel not found
+      if (token.body.data.streamPlaybackAccessToken === null) { //Channel not found
         response.status(404).json({
           'message': 'Channel not found'
         })
@@ -80,23 +79,27 @@ app.get('/hls/:id', async (request, response) => {
             .replace(/\n#EXTINF.+(?<!live)\nhttps:.+/g, '');
         }
 
-        let url = `http://usher.twitch.tv/api/channel/hls/${id}.m3u8?player=twitchweb&&token=${raw.data.streamPlaybackAccessToken.value}&sig=${raw.data.streamPlaybackAccessToken.signature}&allow_audio_only=true&allow_source=true&type=any&p=${parseInt(Math.random() * 999999)}`
-        let hls = await fetch(url, {
+        let url = `http://usher.twitch.tv/api/channel/hls/${id}.m3u8?player=twitchweb&&token=${token.body.data.streamPlaybackAccessToken.value}&sig=${token.body.data.streamPlaybackAccessToken.signature}&allow_audio_only=true&allow_source=true&type=any&p=${parseInt(Math.random() * 999999)}`
+        let hls = await got(url, {
           method: 'GET',
+          responseType: 'text',
+          retry: {
+            limit: 4
+          },
+          throwHttpErrors: false,
           headers: {
             'X-Device-Id': 'twitch-web-wall-mason',
             'Device-ID': 'twitch-web-wall-mason'
           }
         })
-        switch (await hls.status) {
+        switch (hls.statusCode) {
           default: //m3u8 data doesn't exsit
             response.status(404).json({
               'message': 'm3u8 data not found'
             })
             break
           case 200: //m3u8 data exist
-            hls = await hls.text()
-            hls = cleanupAllAdStuff(hls)
+            hls = cleanupAllAdStuff(hls.body)
             hls = hls.replace(/.*#.*\n?/gm, '')
             response.status(200).json(hls.split('\n'))
             break
@@ -113,16 +116,21 @@ app.get('/hls-raw/:data', async (request, response) => {
       data = data + encodeURIComponent(key) + '=' + encodeURIComponent(request.query[key]) + '&'
     }
   }
-  let token = await fetch(`https://gql.twitch.tv/gql`, {
-    "method": 'POST',
-    "headers": {
+  let token = await got(`https://gql.twitch.tv/gql`, {
+    method: 'POST',
+    responseType: 'json',
+    retry: {
+      limit: 4
+    },
+    throwHttpErrors: false,
+    headers: {
       'Client-ID': 'kimne78kx3ncx6brgo4mv6wki5h1ko',
       'Content-Type': 'application/json',
       'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36',
       'X-Device-Id': 'twitch-web-wall-mason',
       'Device-ID': 'twitch-web-wall-mason'
     },
-    "body": JSON.stringify({
+    body: JSON.stringify({
       "operationName": "PlaybackAccessToken",
       "extensions": {
         "persistedQuery": {
@@ -140,36 +148,39 @@ app.get('/hls-raw/:data', async (request, response) => {
     })
   })
 
-  switch (await token.status) {
+  switch (token.statusCode) {
     default: //Error with connect with Twitch API
       response.status(500).json({
         'message': 'Error with Twitch API'
       })
       break
     case 200: //Channel founded
-      raw = await token.json()
-      if (raw.data.streamPlaybackAccessToken === null) { //Channel not found
+      if (token.body.data.streamPlaybackAccessToken === null) { //Channel not found
         response.status(404).json({
           'message': 'Channel not found'
         })
       } else {
         let url = `http://usher.twitch.tv/api/channel/hls/${data}`
-        let hls = await fetch(url, {
+        let hls = await got(url, {
           method: 'GET',
+          responseType: 'text',
+          retry: {
+            limit: 4
+          },
+          throwHttpErrors: false,
           headers: {
             'X-Device-Id': 'twitch-web-wall-mason',
             'Device-ID': 'twitch-web-wall-mason'
           }
         })
-        switch (await hls.status) {
+        switch (hls.statusCode) {
           default: //m3u8 data doesn't exsit
             response.status(404).json({
               'message': 'm3u8 data not found'
             })
             break
           case 200: //m3u8 data exist
-            hls = await hls.text()
-            response.status(200).send(hls.split('\n').join('\n'))
+            response.status(200).send(hls.body)
             break
         }
       }
