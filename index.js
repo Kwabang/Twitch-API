@@ -116,74 +116,28 @@ app.get('/hls-raw/:data', async (request, response) => {
       data = data + encodeURIComponent(key) + '=' + encodeURIComponent(request.query[key]) + '&'
     }
   }
-  let token = await got(`https://gql.twitch.tv/gql`, {
-    method: 'POST',
-    responseType: 'json',
+  let url = `http://usher.ttvnw.net/api/channel/hls/${data}`
+  let headers = request.headers
+  headers['X-Forwarded-For'] = '::1'
+  headers['host'] = 'usher.ttvnw.net'
+  let hls = await got(url, {
+    method: 'GET',
+    responseType: 'text',
     retry: {
       limit: 4
     },
     throwHttpErrors: false,
-    headers: {
-      'Client-ID': 'kimne78kx3ncx6brgo4mv6wki5h1ko',
-      'Content-Type': 'application/json',
-      'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/86.0.4240.111 Safari/537.36',
-      'X-Device-Id': 'twitch-web-wall-mason',
-      'Device-ID': 'twitch-web-wall-mason'
-    },
-    body: JSON.stringify({
-      "operationName": "PlaybackAccessToken",
-      "extensions": {
-        "persistedQuery": {
-          "version": 1,
-          "sha256Hash": "0828119ded1c13477966434e15800ff57ddacf13ba1911c129dc2200705b0712"
-        }
-      },
-      "variables": {
-        "isLive": true,
-        "login": data.split('.m3u8')[0],
-        "isVod": false,
-        "vodID": "",
-        "playerType": "embed"
-      }
-    })
+    headers: headers
   })
-
-  switch (token.statusCode) {
-    default: //Error with connect with Twitch API
-      response.status(500).json({
-        'message': 'Error with Twitch API'
+  switch (hls.statusCode) {
+    default: //m3u8 data doesn't exsit
+      response.status(404).json({
+        'message': 'm3u8 data not found'
       })
       break
-    case 200: //Channel founded
-      if (token.body.data.streamPlaybackAccessToken === null) { //Channel not found
-        response.status(404).json({
-          'message': 'Channel not found'
-        })
-      } else {
-        let url = `http://usher.twitch.tv/api/channel/hls/${data}`
-        let hls = await got(url, {
-          method: 'GET',
-          responseType: 'text',
-          retry: {
-            limit: 4
-          },
-          throwHttpErrors: false,
-          headers: {
-            'X-Device-Id': 'twitch-web-wall-mason',
-            'Device-ID': 'twitch-web-wall-mason'
-          }
-        })
-        switch (hls.statusCode) {
-          default: //m3u8 data doesn't exsit
-            response.status(404).json({
-              'message': 'm3u8 data not found'
-            })
-            break
-          case 200: //m3u8 data exist
-            response.status(200).send(hls.body)
-            break
-        }
-      }
+    case 200: //m3u8 data exist
+      response.status(200).send(hls.body)
+      break
   }
 })
 
