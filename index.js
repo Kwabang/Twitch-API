@@ -108,36 +108,28 @@ app.get('/hls/:id', async (request, response) => {
   }
 })
 
-app.get('/hls-raw/:data', async (request, response) => {
-  let data = request.params.data
-  if (Object.keys(request.query).length !== 0) {
-    data = data + '?'
-    for (let key of Object.keys(request.query)) {
-      data = data + encodeURIComponent(key) + '=' + encodeURIComponent(request.query[key]) + '&'
+app.get('/proxy/*', async (request, response) => {
+  const url = request.params['0'] + '?' + Object.entries(request.query).map(element => element.join('=')).join('&')
+  const domain = (new URL(url)).hostname
+  if (domain === 'usher.ttvnw.net') {
+    const headers = {
+      'host': domain,
+      'user-agent': request.headers['user-agent']
     }
-  }
-  let url = `http://usher.ttvnw.net/api/channel/hls/${data}`
-  let headers = request.headers
-  headers['X-Forwarded-For'] = '::1'
-  headers['host'] = 'usher.ttvnw.net'
-  let hls = await got(url, {
-    method: 'GET',
-    responseType: 'text',
-    retry: {
-      limit: 4
-    },
-    throwHttpErrors: false,
-    headers: headers
-  })
-  switch (hls.statusCode) {
-    default: //m3u8 data doesn't exsit
-      response.status(404).json({
-        'message': 'm3u8 data not found'
-      })
-      break
-    case 200: //m3u8 data exist
-      response.status(200).send(hls.body)
-      break
+    let hls = await got(url, {
+      method: 'GET',
+      responseType: 'text',
+      retry: {
+        limit: 4
+      },
+      throwHttpErrors: false,
+      headers: headers
+    })
+    response.status(hls.statusCode).send(hls.body)
+  } else {
+    response.status(403).json({
+      message: 'URL not allowed'
+    })
   }
 })
 
